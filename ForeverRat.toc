@@ -1,0 +1,10 @@
+## Interface: 16001
+## Title: Forever Rat
+## Notes: Auto-accept res, summons and friend/guild invites, keyword auto-invite, auto combat log and early pull log. /fr
+## Author: Airomatren
+## Version: 1.0.0
+## IconTexture: Interface\AddOns\ForeverRat\Media\icon
+## SavedVariables: ForeverRatDB
+## SavedVariablesPerCharacter: ForeverRatCharDB
+
+ForeverRat.lua
