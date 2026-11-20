@@ -12,7 +12,7 @@ Type `/fr` or click the minimap button to open the settings.
 - **Auto-accept resurrections:** takes a normal res as soon as it's offered.
 - **Auto-accept battle resurrections:** a separate toggle for combat resses. A res counts as a battle res if it comes during a boss encounter or while the caster is in combat.
 - **Auto-accept summons:** takes summons automatically. If you're in combat, it waits and accepts as soon as combat ends.
-- **Auto combat log in dungeons and raids:** starts the combat log when you enter a dungeon or raid and stops it when you leave. It also turns on advanced combat logging, which Warcraft Logs needs. A log you started yourself with `/combatlog` is never stopped.
+- **Auto combat log in dungeons and raids:** starts the combat log when you enter a dungeon or raid and stops it when you leave. Releasing after a death doesn't stop it, so a corpse run stays in one log. It also turns on advanced combat logging, which Warcraft Logs needs. A log you started yourself with `/combatlog` is never stopped.
 - **Minimap button:** click to open settings, drag to move it around the minimap, or hide it.
 
 ### Group

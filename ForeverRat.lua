@@ -145,7 +145,8 @@ local function UpdateCombatLog()
         LoggingCombat(true)
         db.loggingByUs = true
         Notify("Combat logging started.")
-    elseif not want and db.loggingByUs then
+    -- A released ghost leaves the instance; keep logging so a death run doesn't split the log.
+    elseif not want and db.loggingByUs and not UnitIsDeadOrGhost("player") then
         LoggingCombat(false)
         db.loggingByUs = nil
         Notify("Combat logging stopped.")
@@ -419,7 +420,7 @@ local function BuildMenu()
     general:Note("If you're in combat, the summon is accepted once combat ends.")
     general:Header("Combat Log")
     general:Check("autoLog", "Auto combat log in dungeons and raids", UpdateCombatLog)
-    general:Note("Starts the combat log when you enter a dungeon or raid and stops it when you leave. Turns on advanced combat logging for Warcraft Logs.")
+    general:Note("Starts the combat log when you enter a dungeon or raid and stops it when you leave (not while you're dead, so a corpse run keeps one log). Turns on advanced combat logging for Warcraft Logs.")
     general:Header("Minimap")
     general:Check("minimapShow", "Show minimap button", function() minimapBtn:SetShown(db.minimapShow) end)
 
