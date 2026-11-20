@@ -1,4 +1,5 @@
--- Forever Rat: auto-accept res / battle res / summons, and log early pulls. WoW: Forever build of Lazy Rat.
+-- Forever Rat: auto-accept res / summons / friend and guild invites, keyword auto-invite, auto role,
+-- auto combat log and an early pull log. WoW: Forever build of Lazy Rat.
 local ADDON = ...
 
 -- Swap Media\icon.tga (64x64, 32-bit TGA) to change the minimap/addon-list icon.
@@ -86,13 +87,14 @@ local function IsFriendOrGuild(guid, name)
 end
 
 -- Whisper text can be a secret value in instance combat; those whispers are skipped.
-local function OnWhisper(msg, sender, invite, known)
+-- isKnown is only called once everything else passes, since it scans the friends list; nil means always known.
+local function OnWhisper(msg, sender, invite, isKnown)
     if not db.autoInvite or (issecretvalue and (issecretvalue(msg) or issecretvalue(sender))) then return end
-    if db.inviteFriendsOnly and not known then return end
     local keyword = strtrim(db.inviteKeyword or ""):lower()
     -- Whole-message match, so "don't inv me" doesn't trigger an invite.
     if keyword == "" or strtrim(msg):lower() ~= keyword then return end
     if IsInGroup() and not (UnitIsGroupLeader("player") or UnitIsGroupAssistant("player")) then return end
+    if db.inviteFriendsOnly and isKnown and not isKnown() then return end
     invite()
     Notify("Invited " .. sender .. ".")
 end
@@ -104,8 +106,8 @@ local function OnBNWhisper(msg, sender, bnSenderID)
     local game = account and account.gameAccountInfo
     if not (game and game.isOnline and game.clientProgram == BNET_CLIENT_WOW
         and game.wowProjectID == WOW_PROJECT_ID and game.gameAccountID) then return end
-    -- Battle.net whispers only ever come from Battle.net friends.
-    OnWhisper(msg, sender, function() BNInviteFriend(game.gameAccountID) end, true)
+    -- Battle.net whispers only ever come from Battle.net friends, so no friend check.
+    OnWhisper(msg, sender, function() BNInviteFriend(game.gameAccountID) end)
 end
 
 local function OnPartyInvite(inviter, guid)
@@ -617,20 +619,21 @@ events:SetScript("OnEvent", function(self, event, ...)
         self:RegisterEvent("CANCEL_PLAYER_COUNTDOWN")
         self:RegisterEvent("PLAYER_REGEN_DISABLED")
         self:RegisterEvent("ENCOUNTER_START")
+        -- Entering or leaving an instance always has a loading screen; zone changes inside one are ignored
+        -- so a log stopped by hand mid-instance stays stopped.
         self:RegisterEvent("PLAYER_ENTERING_WORLD")
-        self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
         self:RegisterEvent("CHAT_MSG_WHISPER")
         self:RegisterEvent("CHAT_MSG_BN_WHISPER")
         self:RegisterEvent("PARTY_INVITE_REQUEST")
         self:RegisterEvent("GROUP_JOINED")
     elseif event == "GROUP_JOINED" then
         OnGroupJoined()
-    elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
+    elseif event == "PLAYER_ENTERING_WORLD" then
         UpdateCombatLog()
     elseif event == "CHAT_MSG_WHISPER" then
         local msg, sender = ...
         local guid = select(12, ...)
-        OnWhisper(msg, sender, function() C_PartyInfo.InviteUnit(sender) end, IsFriendOrGuild(guid, sender))
+        OnWhisper(msg, sender, function() C_PartyInfo.InviteUnit(sender) end, function() return IsFriendOrGuild(guid, sender) end)
     elseif event == "CHAT_MSG_BN_WHISPER" then
         local msg, sender = ...
         OnBNWhisper(msg, sender, (select(13, ...)))
